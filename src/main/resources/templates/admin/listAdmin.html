@@ -1,0 +1,54 @@
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>JSP Page</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+</head>
+<body>
+
+<div class="container">
+    <h2>DANH SACH Admin</h2>
+    <p><a class="btn btn-primary" href="/admin/addMember">ADD USER</a></p>
+    <table class="table table-bordered">
+        <thead>
+        <tr>
+            <th>Id</th>
+            <th>UserName</th>
+            <th>Password</th>
+            <th>FullName</th>
+            <!--            <th>Date</th>-->
+            <th>Email</th>
+            <th>Phone</th>
+            <!--            <th>TimeCreated</th>-->
+            <!--            <th>TimecUpdated</th>-->
+            <!--            <th>TimeDeleted</th>-->
+            <th>Role</th>
+            <th>Action</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each = "item : ${admins}">
+            <td th:text = "${item.id}"></td>
+            <td th:text = "${item.userName}"></td>
+            <td th:text = "${item.password}"></td>
+            <td th:text = "${item.fullName}"></td>
+            <!--            <td th:text="${item.dateOfBirth}"></td>-->
+            <td th:text = "${item.email}"></td>
+            <td th:text = "${item.phone}"></td>
+            <!--            <td th:text = "${item.timeCreated}"></td>-->
+            <!--            <td th:text = "${item.timeUpdated}"></td>-->
+            <!--            <td th:text = "${item.timeDeleted}"></td>-->
+            <td th:text = "${item.role}"></td>
+            <td><a class="btn btn-primary btn-sm" th:href="@{'/admin/inforAdmin/' + ${item.id}}">Infor</a> |
+                <a class="btn btn-primary btn-sm" th:href="@{'/admin/editAdmin/' + ${item.id}}">Edit</a> |
+                <a class="btn btn-danger btn-sm" th:href="@{'/admin/deleteAdmin/' + ${item.id}}">Del</a></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

@@ -1,13 +1,16 @@
 package com.servicesengine.intern.usermanagement.entity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 import java.sql.Time;
 import java.util.Date;
 
 @Entity
-@Table(name = "user")
-public class User{
+@Table(name = "admin")
+public class Admin{
     @Id
 //    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
@@ -43,7 +46,10 @@ public class User{
     @Column(name = "role")
     private String role;
 
-    public User(Integer id, String fullName, String userName, String password, String email, String phone, String role) {
+    public Admin() {
+    }
+
+    public Admin(Integer id, String fullName, String userName, String password, String email, String phone, Date dateOfBirth, Time timeCreated, Time timeUpdated, Time timeDeleted, String role) {
         this.id = id;
         this.fullName = fullName;
         this.userName = userName;
@@ -51,9 +57,6 @@ public class User{
         this.email = email;
         this.phone = phone;
         this.role = role;
-    }
-
-    public User() {
     }
 
     public Integer getId() {
