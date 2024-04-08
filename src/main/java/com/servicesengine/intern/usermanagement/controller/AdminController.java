@@ -1,17 +1,19 @@
 package com.servicesengine.intern.usermanagement.controller;
 
-import com.servicesengine.intern.usermanagement.entity.Admin;
-import com.servicesengine.intern.usermanagement.entity.Manager;
-import com.servicesengine.intern.usermanagement.entity.Mapper;
 import com.servicesengine.intern.usermanagement.entity.User;
-import com.servicesengine.intern.usermanagement.repository.AdminRepo;
-import com.servicesengine.intern.usermanagement.repository.ManagerRepo;
-import com.servicesengine.intern.usermanagement.repository.UserRepo;
+import com.servicesengine.intern.usermanagement.service.AdminService;
+import com.servicesengine.intern.usermanagement.service.LoginService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.Banner;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,167 +21,148 @@ import java.util.Optional;
 @RequestMapping("/admin")
 public class AdminController {
     @Autowired
-    private AdminRepo adminRepo;
+    private AdminService adminService;
     @Autowired
-    private ManagerRepo managerRepo;
-    @Autowired
-    private UserRepo userRepo;
+    private LoginService loginService;
 
-    @GetMapping("/home")
-    public String home(){
-        return "/admin/home";
-    }
-
-//    Admin
-    @GetMapping("/listAdmin")
-    public String listAdmin(Model model){
-        List<Admin> admins = adminRepo.findAll();
-        model.addAttribute("admins", admins);
-        return "/admin/listAdmin";
+    @GetMapping("/list")
+    public String list(Model model) {
+        adminService.checkAdmin();
+        List<User> users = adminService.getUserRepo().findAll();
+        model.addAttribute("users", users);
+        return "/admin/list";
     }
 
-    @GetMapping("/editAdmin")
-    public String editAdmin(){
-        return "/admin/editAdmin";
-    }
-
-    @PostMapping("/saveOrUpdateAdmin")
-    public String saveOrUpdateAdmin(@ModelAttribute Admin admin){
-        adminRepo.save(admin);
-        return "redirect:/admin/listAdmin";
-    }
-    @GetMapping("/editAdmin/{id}")
-    public String editadmin(@PathVariable("id") Integer id, Model model) {
-        Optional<Admin> optionalAdmin = adminRepo.findById(id);
-        if (optionalAdmin.isPresent()) {
-            model.addAttribute("admin", optionalAdmin.get());
-            return "/admin/editAdmin";
-        } else {
-            throw new IllegalArgumentException("Invalid manager ID");
-        }
-    }
-    @GetMapping("/inforAdmin/{id}")
-    public String inforAdmin(@PathVariable("id") Integer id, Model model) {
-        Optional<Admin> optionalAdmin = adminRepo.findById(id);
-        if (optionalAdmin.isPresent()) {
-            model.addAttribute("user", optionalAdmin.get());
-            return "/admin/editAdmin";
-        } else {
-            throw new IllegalArgumentException("Invalid manager ID");
-        }
-    }
-    @GetMapping("/deleteAdmin/{id}")
-    public String deleteAdmin(@PathVariable("id") Integer id) {
-        adminRepo.deleteById(id);
-        return "redirect:/admin/listAdmin";
-    }
-
-
-
-    //Manager
-    @GetMapping("/listManager")
-    public String listManager(Model model){
-        List<Manager> managers = managerRepo.findAll();
-        model.addAttribute("managers", managers);
-        return "/admin/listManager";
-    }
-
-    @GetMapping("/editManager")
-    public String editManager(){
-        return "/admin/editManger";
-    }
-
-    @PostMapping("/saveOrUpdateManager")
-    public String saveOrUpdateManager(@ModelAttribute Manager manager){
-        managerRepo.save(manager);
-        return "redirect:/admin/listManager";
-    }
-    @GetMapping("/editManager/{id}")
-    public String editmanager(@PathVariable("id") Integer id, Model model) {
-        Optional<Manager> optionalManager = managerRepo.findById(id);
-        if (optionalManager.isPresent()) {
-            model.addAttribute("user", optionalManager.get());
-            return "/admin/editManager";
-        } else {
-            throw new IllegalArgumentException("Invalid manager ID");
-        }
-    }
-    @GetMapping("/inforManager/{id}")
-    public String inforManager(@PathVariable("id") Integer id, Model model) {
-        Optional<Manager> optionalManager = managerRepo.findById(id);
-        if (optionalManager.isPresent()) {
-            model.addAttribute("user", optionalManager.get());
-            return "/admin/editManager";
-        } else {
-            throw new IllegalArgumentException("Invalid manager ID");
-        }
-    }
-    @GetMapping("/deleteManager/{id}")
-    public String deleteManager(@PathVariable("id") Integer id) {
-        userRepo.deleteById(id);
-        return "redirect:/admin/listManager";
-    }
-
-
-//    User
+    //    User
     @GetMapping("/listUser")
-    public String listUser(Model model){
-        List<User> users = userRepo.findAll();
+    public String listUser(Model model) {
+        adminService.checkAdmin();
+//        adminService.getSession().removeAttribute("user");
+        List<User> users = adminService.getUserRepo().findByRole(User.Role.USER);
         model.addAttribute("users", users);
         return "/admin/listUser";
     }
+
     @GetMapping("/addMember")
-    public String addUser(){
+    public String addUser(Model model) {
+        adminService.checkAdmin();
+        User user = (User) adminService.getSession().getAttribute("user");
+        if( user == null ) user = new User();
+        model.addAttribute("user", user);
         return "/admin/addMember";
     }
 
-    @GetMapping("/editUser")
-    public String editUser(){
-        return "/admin/editUser";
+    @PostMapping("/saveOrUpdate")
+    public String saveOrUpdate(@Validated @ModelAttribute User user, RedirectAttributes redirectAttributes) {
+        adminService.checkAdmin();
+        LocalDateTime current = LocalDateTime.now();
+        if (user.getId() == null) {
+            user.setTimeCreated(current);
+            if (!adminService.checkAddUser(user, redirectAttributes)) {
+                adminService.getSession().setAttribute("user", user);
+                return "redirect:/admin/addMember";
+            }
+        } else {
+            user.setTimeUpdated(current);
+            if (!adminService.checkEditUser(user, redirectAttributes)) {
+                adminService.getSession().setAttribute("user", user);
+                return "redirect:/admin/addMember";
+            }
+        }
+        user.setPassword(adminService.hashPassword(user.getPassword()));
+        adminService.getUserRepo().save(user);
+        adminService.getSession().removeAttribute("user");
+        return "redirect:/admin/list";
     }
 
-    @PostMapping("/saveOrUpdate")
-    public String saveOrUpdate(@ModelAttribute User user){
-        if(user.getRole().equals("admin")){
-            adminRepo.save(Mapper.toAdmin(user));
-            return "redirect:/admin/listAdmin";
-        } else if (user.getRole().equals("manager")) {
-            managerRepo.save(Mapper.toManager(user));
-            return "redirect:/admin/listManager";
-        } else if (user.getRole().equals("user")) {
-            userRepo.save(user);
-            return "redirect:/admin/listUser";
-        }
-        else return null;
-    }
-//    @PostMapping("/saveOrUpdate")
-//    public String saveOrUpdate(@ModelAttribute User user){
-//        userRepo.save(user);
-//        return "redirect:/admin/listUser";
-//    }
+
     @GetMapping("/editUser/{id}")
     public String editUser(@PathVariable("id") Integer id, Model model) {
-        Optional<User> optionalUser = userRepo.findById(id);
+        adminService.checkAdmin();
+        Optional<User> optionalUser = adminService.getUserRepo().findById(id);
         if (optionalUser.isPresent()) {
             model.addAttribute("user", optionalUser.get());
-            return "/admin/editUser";
+            adminService.getSession().setAttribute("user", optionalUser.get());
+            return "/admin/addMember";
         } else {
             throw new IllegalArgumentException("Invalid user ID");
         }
     }
+
     @GetMapping("/inforUser/{id}")
     public String inforUser(@PathVariable("id") Integer id, Model model) {
-        Optional<User> optionalUser = userRepo.findById(id);
+        adminService.checkAdmin();
+        Optional<User> optionalUser = adminService.getUserRepo().findById(id);
         if (optionalUser.isPresent()) {
             model.addAttribute("user", optionalUser.get());
-            return "/admin/editUser";
+            return "/admin/inforMember";
         } else {
             throw new IllegalArgumentException("Invalid user ID");
         }
     }
+
     @GetMapping("/deleteUser/{id}")
-    public String deleteUser(@PathVariable("id") Integer id) {
-        userRepo.deleteById(id);
-        return "redirect:/admin/listUser";
+    public String deleteUser(@PathVariable("id") Integer id, Model model) {
+        adminService.checkAdmin();
+        if (!adminService.checkCanDelete(id)){
+            model.addAttribute("deleteError", true);
+        }
+        else adminService.getUserRepo().deleteById(id);
+        return "redirect:/admin/list";
+    }
+
+    //    Admin
+    @GetMapping("/listAdmin")
+    public String listAdmin(Model model) {
+        adminService.checkAdmin();
+        List<User> admins = adminService.getUserRepo().findByRole(User.Role.ADMIN);
+        model.addAttribute("admins", admins);
+        return "/admin/listAdmin";
+    }
+    @GetMapping("/changePassword/{id}")
+    public String changePassword(@PathVariable("id") Integer id, Model model) {
+        adminService.checkAdmin();
+        Optional<User> optionalUser = adminService.getUserRepo().findById(id);
+        if (optionalUser.isPresent()) {
+            model.addAttribute("user", optionalUser.get());
+            adminService.getSession().setAttribute("user", optionalUser.get());
+            return "/admin/changePassword";
+        } else {
+            throw new IllegalArgumentException("Invalid user ID");
+        }
+    }
+    @PostMapping("/savePassword")
+    public String savePassword(@Validated @ModelAttribute User user, @RequestParam("newPassword") String newPassword, @RequestParam("rePassword") String rePassword){
+        adminService.checkAdmin();
+        if (loginService.checkLogin(user.getUserName(),user.getPassword())){
+            if(newPassword.equals(rePassword)) {
+                user.setPassword(adminService.hashPassword(rePassword));
+                adminService.getUserRepo().save(user);
+                return "redirect:/admin/list";
+            }
+        }
+        return "/admin/changePassword";
+    }
+
+    //Manager
+    @GetMapping("/listManager")
+    public String listManager(Model model) {
+        adminService.checkAdmin();
+        List<User> managers = adminService.getUserRepo().findByRole(User.Role.MANAGER);
+        model.addAttribute("users", managers);
+        return "/admin/listManager";
+    }
+
+    @PostMapping("/fillter")
+    public String filterUsers(Model model ,@RequestParam("searchInput") String keyword, @RequestParam("filterSelect1") String filter1, @RequestParam("filterSelect2") String filter2) {
+        adminService.checkAdmin();
+        List<User> users = adminService.searchUsers(keyword, filter1, filter2);
+        model.addAttribute("users", users);
+        return "/admin/list";
+    }
+
+    @ExceptionHandler(HttpClientErrorException.class)
+    public String handleForbidden(HttpClientErrorException ex) {
+        return "redirect:/login";
     }
 }

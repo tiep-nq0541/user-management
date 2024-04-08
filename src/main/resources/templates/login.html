@@ -1,6 +1,5 @@
-
 <!DOCTYPE html>
-<html>
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
@@ -12,16 +11,16 @@
     <div class="row" style="border: 1px darkgrey solid; border-radius: 10px;width: 50%; margin: 0 auto; padding: 20px;" >
         <div class="col-sm-12">
             <h3>Login</h3>
-            <form action="/checklogin" method="post">
+            <form action="/checklogin" method="post" id="loginForm">
                 <div class="form-group">
                     <label>UserName</label>
-                    <input type="text" class="form-control" name="username" placeholder="Enter UserName">
+                    <input type="text" class="form-control" name="userName" id="userName" placeholder="Enter UserName" th:value="${#ctx.session.lastUserName}" autofocus>
                 </div>
                 <div class="form-group">
                     <label>Password:</label>
-                    <input type="password" class="form-control" name="password" placeholder="Enter password">
+                    <input type="password" class="form-control" name="password" id="password" placeholder="Enter password" >
                 </div>
-                <p style="color: red">Username and password not exist</p>
+                <p id="errorMessage" style="color: red;" th:text="${errorMessage}"></p>
                 <button type="submit" class="btn btn-primary">Submit</button>
                 <button type="reset" class="btn btn-primary">Cancel</button>
                 <p style="margin: 10px; font-size: 16px;"><a href="register-user.jsp">Register</a></p>
@@ -29,5 +28,6 @@
         </div>
     </div>
 </div>
+
 </body>
-</html>
+<!--</html>-->

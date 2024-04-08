@@ -1,15 +1,18 @@
 package com.servicesengine.intern.usermanagement.entity;
 
 import jakarta.persistence.*;
+import org.springframework.format.annotation.DateTimeFormat;
 
+import javax.xml.crypto.Data;
 import java.sql.Time;
-import java.util.Date;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "user")
 public class User{
     @Id
-//    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Integer id;
 
@@ -28,28 +31,32 @@ public class User{
     @Column(name = "phone")
     private String phone;
 
-//    @Column(name = "date_of_birth")
-//    private Date dateOfBirth;
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
+    @Column(name = "date_of_birth")
+    private LocalDate dateOfBirth;
 
-//    @Column(name = "time_created")
-//    private Time timeCreated;
-//
-//    @Column(name = "time_updated")
-//    private Time timeUpdated;
-//
-//    @Column(name = "time_deleted")
-//    private Time timeDeleted;
+    @Column(name = "time_created")
+//    @DateTimeFormat(pattern = "yyyy-MM-ddTHH:MM") // Định dạng của LocalDateTime
+    private LocalDateTime timeCreated;
+
+    @Column(name = "time_updated")
+//    @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:MM") // Định dạng của LocalDateTime
+    private LocalDateTime timeUpdated;
 
     @Column(name = "role")
-    private String role;
+    @Enumerated(EnumType.STRING)
+    private Role role;
 
-    public User(Integer id, String fullName, String userName, String password, String email, String phone, String role) {
+    public User(Integer id, String fullName, String userName, String password, String email, String phone, LocalDate dateOfBirth, LocalDateTime timeCreated, LocalDateTime timeUpdated, LocalDateTime timeDeleted, Role role) {
         this.id = id;
         this.fullName = fullName;
         this.userName = userName;
         this.password = password;
         this.email = email;
         this.phone = phone;
+        this.dateOfBirth = dateOfBirth;
+        this.timeCreated = timeCreated;
+        this.timeUpdated = timeUpdated;
         this.role = role;
     }
 
@@ -104,11 +111,42 @@ public class User{
         this.phone = phone;
     }
 
-    public String getRole() {
+    public LocalDate getDateOfBirth() {
+        return dateOfBirth;
+    }
+
+    public void setDateOfBirth(LocalDate dateOfBirth) {
+        this.dateOfBirth = dateOfBirth;
+    }
+
+    public LocalDateTime getTimeCreated() {
+        return timeCreated;
+    }
+
+    public void setTimeCreated(LocalDateTime timeCreated) {
+        this.timeCreated = timeCreated;
+    }
+
+    public LocalDateTime getTimeUpdated() {
+        return timeUpdated;
+    }
+
+    public void setTimeUpdated(LocalDateTime timeUpdated) {
+        this.timeUpdated = timeUpdated;
+    }
+
+
+    public Role getRole() {
         return role;
     }
 
-    public void setRole(String role) {
+    public void setRole(Role role) {
         this.role = role;
+    }
+
+    public enum Role {
+        ADMIN,
+        MANAGER,
+        USER,
     }
 }
