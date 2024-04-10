@@ -1,18 +1,15 @@
 package com.servicesengine.intern.usermanagement.service;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import com.servicesengine.intern.usermanagement.entity.User;
 import com.servicesengine.intern.usermanagement.repository.UserRepo;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
-import javax.swing.*;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -52,48 +49,44 @@ public class AdminService {
         return false;
     }
     public boolean checkEditUser(User user, RedirectAttributes redirectAttributes){
+        User tmp = (User) session.getAttribute("user");
         if ( checkPhone(user.getPhone()) && checkEmail(user.getEmail())) return true;
         if (!checkPhone(user.getPhone())){
-            redirectAttributes.addFlashAttribute("errorPhone", "Phone is not correct");
+            if (user.getPhone().isEmpty()){
+                user.setPhone(tmp.getPhone());
+            }else redirectAttributes.addFlashAttribute("errorPhone", "Phone is not correct");
         }
         if (!checkEmail(user.getEmail())){
-            redirectAttributes.addFlashAttribute("errorEmail", "Email is not correct");
+            if (user.getEmail().isEmpty()){
+                user.setEmail(tmp.getEmail());
+            }else redirectAttributes.addFlashAttribute("errorEmail", "Email is not correct");
         }
         return false;
     }
     public boolean checkUserName(String username){
-        if (validUserName(username) && !existsUserName(username)) return true;
-        return false;
+        return validUserName(username) && !existsUserName(username);
     }
     public boolean validUserName(String username){
-        if (username == "") return false;
-        return true;
+        return !username.isEmpty();
     }
     public boolean existsUserName(String username){
-        if (userRepo.existsByUserName(username)) return true;
-        return false;
+        return userRepo.existsByUserName(username);
     }
 
     public boolean checkPhone(String phone){
-        if (validPhone(phone) && !existsPhone(phone)) return true;
-        return false;
+        return validPhone(phone) && !existsPhone(phone);
     }
     public boolean existsPhone(String phone){
         User user = (User)session.getAttribute("user");
         if (user != null){
-            if(phone == "" || user.getPhone().equals(phone)){
-                phone = user.getPhone();
+            if(user.getPhone().equals(phone)){
                 return false;
             }
         }
-            if (userRepo.existsByPhone(phone)) return true;
-        return false;
+        return userRepo.existsByPhone(phone);
     }
     public boolean validPhone(String phone){
-        if(phone.length() == 10 && isLong(phone)){
-            return true;
-        }
-        return false;
+        return phone.length() == 10 && isLong(phone);
     }
     public boolean isLong(String str) {
         try {
@@ -105,19 +98,16 @@ public class AdminService {
     }
 
     public boolean checkEmail(String email){
-        if (validEmail(email) && !existsEmail(email)) return true;
-        return false;
+        return validEmail(email) && !existsEmail(email);
     }
     public boolean existsEmail(String email){
         User user = (User)session.getAttribute("user");
         if (user != null){
-            if(email == "" || user.getEmail().equals(email)){
-                email = user.getEmail();
+            if(user.getEmail().equals(email)){
                 return false;
             }
         }
-        if (userRepo.existsByEmail(email)) return true;
-        return false;
+        return userRepo.existsByEmail(email);
     }
     public boolean validEmail(String email) {
         Matcher matcher = pattern.matcher(email);
@@ -132,8 +122,7 @@ public class AdminService {
     }
     public boolean checkCanDelete(Integer id){
         User user = (User) session.getAttribute("user_login");
-        if (user.getId().equals(id)) return false;
-        return true;
+        return !user.getId().equals(id);
     }
 
     public List<User> searchUsers(String keyword, String filter1, String filter2) {
@@ -149,9 +138,10 @@ public class AdminService {
                 switch (filter1){
                     case "fillAll" : {
                         List<User> tmp = userRepo.search(keyword);
-                        List<User> users = new ArrayList<User>();
+                        List<User> users = new ArrayList<>();
                         for (User user : tmp){
-                            if (user.getRole().equals("USER")){
+                            if (user.getRole().equals(User.Role.USER)){
+                                System.out.println("hello");
                                 users.add(user);
                             }
                         }
@@ -159,9 +149,9 @@ public class AdminService {
                     }
                     case "fillUserName" : {
                         List<User> tmp = userRepo.searchUserName(keyword);
-                        List<User> users = new ArrayList<User>();
+                        List<User> users = new ArrayList<>();
                         for (User user : tmp){
-                            if (user.getRole().equals("USER")){
+                            if (user.getRole().equals(User.Role.USER)){
                                 users.add(user);
                             }
                         }
@@ -169,9 +159,9 @@ public class AdminService {
                     }
                     case "fillFullName" :{
                         List<User> tmp = userRepo.searchFullName(keyword);
-                        List<User> users = new ArrayList<User>();
+                        List<User> users = new ArrayList<>();
                         for (User user : tmp){
-                            if (user.getRole().equals("USER")){
+                            if (user.getRole().equals(User.Role.USER)){
                                 users.add(user);
                             }
                         }
@@ -179,21 +169,23 @@ public class AdminService {
                     }
                     case "fillEmail" :{
                         List<User> tmp = userRepo.searchEmail(keyword);
-                        List<User> users = new ArrayList<User>();
+                        List<User> users = new ArrayList<>();
                         for (User user : tmp){
-                            if (user.getRole().equals("USER")){
+                            if (user.getRole().equals(User.Role.USER)){
                                 users.add(user);
                             }
                         }
                         return users;
                     }
+                    default:
+                        throw new IllegalStateException("Unexpected value: " + filter1);
                 }
             case "fillManager" :switch (filter1){
                 case "fillAll" : {
                     List<User> tmp = userRepo.search(keyword);
-                    List<User> users = new ArrayList<User>();
+                    List<User> users = new ArrayList<>();
                     for (User user : tmp){
-                        if (user.getRole().equals("MANAGER")){
+                        if (user.getRole().equals(User.Role.MANAGER)){
                             users.add(user);
                         }
                     }
@@ -201,9 +193,9 @@ public class AdminService {
                 }
                 case "fillUserName" : {
                     List<User> tmp = userRepo.searchUserName(keyword);
-                    List<User> users = new ArrayList<User>();
+                    List<User> users = new ArrayList<>();
                     for (User user : tmp){
-                        if (user.getRole().equals("MANAGER")){
+                        if (user.getRole().equals(User.Role.MANAGER)){
                             users.add(user);
                         }
                     }
@@ -211,9 +203,9 @@ public class AdminService {
                 }
                 case "fillFullName" :{
                     List<User> tmp = userRepo.searchFullName(keyword);
-                    List<User> users = new ArrayList<User>();
+                    List<User> users = new ArrayList<>();
                     for (User user : tmp){
-                        if (user.getRole().equals("MANAGER")){
+                        if (user.getRole().equals(User.Role.MANAGER)){
                             users.add(user);
                         }
                     }
@@ -221,9 +213,9 @@ public class AdminService {
                 }
                 case "fillEmail" :{
                     List<User> tmp = userRepo.searchEmail(keyword);
-                    List<User> users = new ArrayList<User>();
+                    List<User> users = new ArrayList<>();
                     for (User user : tmp){
-                        if (user.getRole().equals("MANAGER")){
+                        if (user.getRole().equals(User.Role.MANAGER)){
                             users.add(user);
                         }
                     }
@@ -233,9 +225,9 @@ public class AdminService {
             case "fillAdmin" :switch (filter1){
                 case "fillAll" : {
                     List<User> tmp = userRepo.search(keyword);
-                    List<User> users = new ArrayList<User>();
+                    List<User> users = new ArrayList<>();
                     for (User user : tmp){
-                        if (user.getRole().equals("ADMIN")){
+                        if (user.getRole().equals(User.Role.ADMIN)){
                             users.add(user);
                         }
                     }
@@ -243,9 +235,9 @@ public class AdminService {
                 }
                 case "fillUserName" : {
                     List<User> tmp = userRepo.searchUserName(keyword);
-                    List<User> users = new ArrayList<User>();
+                    List<User> users = new ArrayList<>();
                     for (User user : tmp){
-                        if (user.getRole().equals("ADMIN")){
+                        if (user.getRole().equals(User.Role.ADMIN)){
                             users.add(user);
                         }
                     }
@@ -253,9 +245,9 @@ public class AdminService {
                 }
                 case "fillFullName" :{
                     List<User> tmp = userRepo.searchFullName(keyword);
-                    List<User> users = new ArrayList<User>();
+                    List<User> users = new ArrayList<>();
                     for (User user : tmp){
-                        if (user.getRole().equals("ADMIN")){
+                        if (user.getRole().equals(User.Role.ADMIN)){
                             users.add(user);
                         }
                     }
@@ -263,9 +255,9 @@ public class AdminService {
                 }
                 case "fillEmail" :{
                     List<User> tmp = userRepo.searchEmail(keyword);
-                    List<User> users = new ArrayList<User>();
+                    List<User> users = new ArrayList<>();
                     for (User user : tmp){
-                        if (user.getRole().equals("ADMIN")){
+                        if (user.getRole().equals(User.Role.ADMIN)){
                             users.add(user);
                         }
                     }

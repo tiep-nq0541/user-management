@@ -1,10 +1,12 @@
 package com.servicesengine.intern.usermanagement.repository;
 
 import com.servicesengine.intern.usermanagement.entity.User;
+import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.awt.print.Pageable;
 import java.util.List;
 
 public interface UserRepo extends JpaRepository<User, Integer> {
@@ -25,5 +27,4 @@ public interface UserRepo extends JpaRepository<User, Integer> {
     List<User> searchFullName(@Param("keyword") String keyword);
     @Query("SELECT u FROM User u WHERE u.email LIKE %:keyword%")
     List<User> searchEmail(@Param("keyword") String keyword);
-
 }

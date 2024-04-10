@@ -1,10 +1,13 @@
 package com.servicesengine.intern.usermanagement.controller;
 
 import com.servicesengine.intern.usermanagement.entity.User;
+import com.servicesengine.intern.usermanagement.repository.UserDAO;
 import com.servicesengine.intern.usermanagement.service.AdminService;
 import com.servicesengine.intern.usermanagement.service.LoginService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.Banner;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.annotation.Validated;
@@ -24,12 +27,20 @@ public class AdminController {
     private AdminService adminService;
     @Autowired
     private LoginService loginService;
+    @Autowired
+    private UserDAO userDAO;
 
     @GetMapping("/list")
-    public String list(Model model) {
+    public String list(Model model,
+                       @RequestParam(defaultValue = "0") int page,
+                       @RequestParam(defaultValue = "10") int size) {
+        Page<User> usersPage = userDAO.findAll(PageRequest.of(page, size));
         adminService.checkAdmin();
         List<User> users = adminService.getUserRepo().findAll();
         model.addAttribute("users", users);
+//        model.addAttribute("users", usersPage);
+//        model.addAttribute("currentPage", usersPage.getNumber());
+//        model.addAttribute("totalPages", usersPage.getTotalPages());
         return "/admin/list";
     }
 
@@ -46,6 +57,7 @@ public class AdminController {
     @GetMapping("/addMember")
     public String addUser(Model model) {
         adminService.checkAdmin();
+        adminService.getSession().removeAttribute("user");
         User user = (User) adminService.getSession().getAttribute("user");
         if( user == null ) user = new User();
         model.addAttribute("user", user);
@@ -152,12 +164,17 @@ public class AdminController {
         model.addAttribute("users", managers);
         return "/admin/listManager";
     }
-
     @PostMapping("/fillter")
-    public String filterUsers(Model model ,@RequestParam("searchInput") String keyword, @RequestParam("filterSelect1") String filter1, @RequestParam("filterSelect2") String filter2) {
+    public String filterUsers(Model model, @RequestParam("searchInput") String keyword, @RequestParam("filterSelect1") String filter1, @RequestParam("filterSelect2") String filter2,
+                              @RequestParam(defaultValue = "0") int page,
+                              @RequestParam(defaultValue = "10") int size) {
         adminService.checkAdmin();
-        List<User> users = adminService.searchUsers(keyword, filter1, filter2);
+//        Pageable pageable = PageRequest.of(page, size);
+        List<User> users = adminService.getUserRepo().search(keyword);
         model.addAttribute("users", users);
+//        model.addAttribute("usersPage", users);
+//        model.addAttribute("currentPage", 0);
+//        model.addAttribute("totalPages", 0);
         return "/admin/list";
     }
 

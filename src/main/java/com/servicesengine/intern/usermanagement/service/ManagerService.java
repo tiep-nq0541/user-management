@@ -138,7 +138,7 @@ public class ManagerService {
                 List<User> tmp = userRepo.search(keyword);
                 List<User> users = new ArrayList<User>();
                 for (User user : tmp) {
-                    if (user.getRole().equals("USER")) {
+                    if (user.getRole().equals(User.Role.USER)) {
                         users.add(user);
                     }
                 }

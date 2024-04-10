@@ -27,7 +27,7 @@
                     <input type="text" class="form-control mb-2" id="searchInput" name="searchInput" placeholder="Enter keyword...">
                 </div>
                 <div class="col-md-2">
-                    <select class="form-control mb-2" id="filterSelect1" name="filterSelect">
+                    <select class="form-control mb-2" id="filterSelect1" name="filterSelect1">
                         <option value="fillAll">All</option>
                         <option value="fillUserName">Username</option>
                         <option value="fillFullName">Full Name</option>
@@ -35,7 +35,7 @@
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <select class="form-control mb-2" id="filterSelect2" name="filterSelect">
+                    <select class="form-control mb-2" id="filterSelect2" name="filterSelect2">
                         <option value="fillAll">All</option>
                         <option value="fillUser">User</option>
                         <option value="fillManager">Manager</option>
@@ -78,6 +78,7 @@
         </tr>
         </tbody>
     </table>
+<!--    <footer th:replace="fragments/footer_admin.html :: footer"> </footer>-->
 </div>
 <script>
     function confirmDelete(event) {
